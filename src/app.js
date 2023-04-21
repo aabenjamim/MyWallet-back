@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import { MongoClient } from 'mongodb'
+import { MongoClient , ObjectId} from 'mongodb'
 import dotenv from 'dotenv'
 import joi from 'joi'
 import dayjs from 'dayjs'
@@ -25,7 +25,7 @@ mongoClient.connect()
 // Endpoints
 
 const inserirSchema = joi.object({
-    valor: joi.number().precision(2).required(),
+    valor: joi.number().positive().precision(2).required(),
     descricao: joi.string().required()
 })
 
@@ -78,34 +78,51 @@ app.post('/', async(req, res)=>{
 
     try{
         const user = await db.collection('usuarios').findOne({email});
-            if(!user) return res.status(401).send("Email não cadastrado!")
+            if(!user) return res.status(404).send("Email não cadastrado!")
 
         const senhaCorreta = bcrypt.compareSync(senha, user.senha)
             if(!senhaCorreta) return res.status(401).send("Senha incorreta!")
 
-        res.sendStatus(200)
+        const token = uuid()
+        await db.collection("sessoes").insertOne({idUsuario:user._id, token})
+
+        res.status(200).send({idUsuario:user._id, nome: user.nome, token})
 
     }catch(err){
         res.status(500).send(err.message)
     }    
 })
 
-app.post('/nova-transacao/:tipo', (req, res)=>{
+app.post('/nova-transacao/:tipo', async(req, res)=>{
+
+   /* const { authorization } = req.headers
+
+    const token = authorization?.replace("Bearer ", "")
+
+    if (!token) return res.status(401).send("Token inexistente")*/
+
     const {tipo} = req.params
     const {valor, descricao} = req.body
 
-    const validation = tipoSchema.validate(req.params)
+    const validation = tipoSchema.validate({tipo})
         if(validation.error) return res.status(422).send('Rota não encontrada')
     
     try{
+
+      /*  const sessao = await db.collection("sessoes").findOne({ token })
+        if (!sessao) return res.status(401).send("Token inválido")*/
+
         const validacao = inserirSchema.validate({valor, descricao})
             if(validacao.error) return res.status(422).send('Valor ou descrição inválidos')
         
-        db.collection(tipo).insertOne({
+        db.collection("transacoes").insertOne({
             valor: valor,
             descricao: descricao,
-            data: dayjs().format('DD/MM')
-        }).then(()=>res.send('OK!'))
+            data: dayjs().format('DD/MM'),
+            tipo: tipo
+        }).then(()=>{
+            res.send('OK!')
+            console.log(tipo)})
           .catch(()=>res.status(400).send('Não foi possível inserir a entrada'))
 
     } catch(err){
@@ -119,7 +136,7 @@ app.get('/nova-transacao/:tipo', (req, res)=>{
     const validation = tipoSchema.validate(req.params)
     if(validation.error) return res.status(422).send('Rota não encontrada')
 
-    db.collection(tipo).find().toArray()
+    db.collection("transacoes").find().toArray()
         .then((transacoes)=> res.status(200).send(transacoes))
         .catch(()=>res.status(500).send('Não foi possível pegar as transações'))
     
@@ -131,6 +148,35 @@ app.get('/cadastro', async(req, res)=>{
     res.status(200).send(user)
 
 })
+
+app.get('/', async (req, res)=>{
+    const user = await db.collection("sessoes").find().toArray()
+    res.status(200).send(user)
+})
+
+app.get('/home', async (req, res)=>{
+
+    /*const { authorization } = req.headers
+
+    const token = authorization?.replace("Bearer ", "")
+
+    if (!token) return res.status(401).send("Token inexistente")*/
+
+    try {
+       /*const sessao = await db.collection("sessoes").findOne({ token })
+        if (!sessao) return res.status(401).send("Token inválido")
+
+        const transacoes = await db.collection("transacoes")
+        .findMany({ _id: new ObjectId(sessao.idUsuario) }).toArray()*/
+
+        const transacoes = await db.collection("transacoes").find().sort({ _id: -1 }).toArray()
+
+        res.status(200).send(transacoes)
+    } catch (err){
+        res.status(500).send(err.message)
+    }
+})
+
 
 
 // Deixa o app escutando, à espera de requisições
