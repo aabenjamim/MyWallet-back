@@ -95,11 +95,11 @@ app.post('/', async(req, res)=>{
 
 app.post('/nova-transacao/:tipo', async(req, res)=>{
 
-   /* const { authorization } = req.headers
+    const { authorization } = req.headers
 
     const token = authorization?.replace("Bearer ", "")
 
-    if (!token) return res.status(401).send("Token inexistente")*/
+    if (!token) return res.status(401).send("Token inexistente")
 
     const {tipo} = req.params
     const {valor, descricao} = req.body
@@ -109,13 +109,14 @@ app.post('/nova-transacao/:tipo', async(req, res)=>{
     
     try{
 
-      /*  const sessao = await db.collection("sessoes").findOne({ token })
-        if (!sessao) return res.status(401).send("Token inválido")*/
+        const sessao = await db.collection("sessoes").findOne({ token })
+        if (!sessao) return res.status(401).send("Token inválido")
 
         const validacao = inserirSchema.validate({valor, descricao})
             if(validacao.error) return res.status(422).send('Valor ou descrição inválidos')
         
         db.collection("transacoes").insertOne({
+            idUsuario: sessao.idUsuario,
             valor: valor,
             descricao: descricao,
             data: dayjs().format('DD/MM'),
@@ -156,20 +157,25 @@ app.get('/', async (req, res)=>{
 
 app.get('/home', async (req, res)=>{
 
-    /*const { authorization } = req.headers
+    const { authorization } = req.headers
 
     const token = authorization?.replace("Bearer ", "")
 
-    if (!token) return res.status(401).send("Token inexistente")*/
+    if (!token) return res.status(401).send("Token inexistente")
 
     try {
-       /*const sessao = await db.collection("sessoes").findOne({ token })
+        const sessao = await db.collection("sessoes").findOne({ token })
         if (!sessao) return res.status(401).send("Token inválido")
 
-        const transacoes = await db.collection("transacoes")
-        .findMany({ _id: new ObjectId(sessao.idUsuario) }).toArray()*/
+        console.log(sessao)
+        const idUsuario = sessao.idUsuario
+        console.log("idUsuario:", idUsuario)
 
-        const transacoes = await db.collection("transacoes").find().sort({ _id: -1 }).toArray()
+        const transacoes = await db.collection("transacoes").find({ idUsuario }).sort({ _id: -1 }).toArray()
+
+        console.log(transacoes)
+
+        //const transacoes = await db.collection("transacoes").find().sort({ _id: -1 }).toArray()
 
         res.status(200).send(transacoes)
     } catch (err){
