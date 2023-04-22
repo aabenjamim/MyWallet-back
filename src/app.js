@@ -131,30 +131,6 @@ app.post('/nova-transacao/:tipo', async(req, res)=>{
     }
 })
 
-app.get('/nova-transacao/:tipo', (req, res)=>{
-    const {tipo} = req.params
-
-    const validation = tipoSchema.validate(req.params)
-    if(validation.error) return res.status(422).send('Rota não encontrada')
-
-    db.collection("transacoes").find().toArray()
-        .then((transacoes)=> res.status(200).send(transacoes))
-        .catch(()=>res.status(500).send('Não foi possível pegar as transações'))
-    
-})
-
-app.get('/cadastro', async(req, res)=>{
-   const user = await db.collection("usuarios").find().toArray()
-    if(!user) return res.status(500).send('erro')
-    res.status(200).send(user)
-
-})
-
-app.get('/', async (req, res)=>{
-    const user = await db.collection("sessoes").find().toArray()
-    res.status(200).send(user)
-})
-
 app.get('/home', async (req, res)=>{
 
     const { authorization } = req.headers
@@ -182,7 +158,6 @@ app.get('/home', async (req, res)=>{
         res.status(500).send(err.message)
     }
 })
-
 
 
 // Deixa o app escutando, à espera de requisições
