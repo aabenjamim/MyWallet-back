@@ -1,17 +1,10 @@
 import { db } from '../database/database.connection.js'
 import bcrypt from 'bcrypt'
 import {v4 as uuid} from 'uuid'
-import { userCadastroSchema, userLoginSchema } from "../schemas/usuario.schemas.js"
 
 
 export async function postCadastro(req, res){
-    const {nome, email, senha}= req.body;
-
-    const validacao = userCadastroSchema.validate(req.body, { abortEarly: false })
-  
-    if (validacao.error) {
-      return res.status(422).send('Não foi possível validar os dados')
-    }
+    const {nome, email, senha}= req.body
 
     try {
         const usuario = await db.collection("usuarios").findOne({email}) 
@@ -29,12 +22,6 @@ export async function postCadastro(req, res){
 
 export async function postLogin(req, res){
     const { email, senha } = req.body
-
-    const validacao = userLoginSchema.validate(req.body, { abortEarly: false })
-  
-    if (validacao.error) {
-      return res.status(422).send('Não foi possível validar os dados')
-    }
 
     try{
         const user = await db.collection('usuarios').findOne({email});
