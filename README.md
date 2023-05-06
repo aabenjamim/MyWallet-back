@@ -4,7 +4,7 @@ Seja bem-vindo(a) ao MyWallet, meu primeiro projeto full stack! Aqui você encon
 
 ## Sobre o Projeto
 
-O MyWallet é uma carteira digital desenvolvida como parte do meu primeiro projeto full stack. Ele permite que você registre suas transações de entrada e saída de recursos financeiros, visualize o saldo atual da carteira e confira o histórico de transações com detalhes de data e valor.
+O MyWallet é uma carteira digital desenvolvida para ser o meu primeiro projeto full stack. Ele permite que você registre suas transações de entrada e saída de recursos financeiros, visualize o saldo atual da carteira e confira o histórico de transações com detalhes de data e valor.
 
 ## Tecnologias Utilizadas
 
